@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Universo de Jazmín 💜</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { overflow: hidden; height: 100%; background: #000; font-family: Georgia, serif; }
+        .webgl { position: fixed; top: 0; left: 0; width: 100%; height: 100%; outline: none; }
+
+        /* Corazones flotantes CSS de fondo */
+        .heart {
+            position: absolute;
+            color: rgba(153, 51, 255, 0.2); /* Violeta tenue */
+            font-size: 24px;
+            animation: float 15s infinite ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(10deg); opacity: 0.7; }
+        }
+
+        .credits {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            color: #fff; font-family: 'Pacifico', cursive; font-size: 18px; text-align: center;
+            text-shadow: 0 0 3px #fff, 0 0 10px #9933ff, 0 0 15px #9933ff;
+            z-index: 10; pointer-events: none;
+        }
+        
+        .instructions {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.9); font-family: 'Pacifico', cursive; font-size: 22px;
+            text-align: center; text-shadow: 0 0 10px #6a0dad;
+            z-index: 10; pointer-events: none;
+        }
+        
+        /* Botón Menú */
+        .menu-button {
+            position: fixed; top: 15px; left: 15px; width: 40px; height: 40px;
+            background: rgba(106, 13, 173, 0.4); border-radius: 50%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 20; backdrop-filter: blur(5px); border: 1px solid #9933ff;
+        }
+        .menu-button span { display: block; width: 20px; height: 2px; background: white; margin: 2px 0; border-radius: 1px; }
+        
+        /* Panel Configuración */
+        .config-panel {
+            position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
+            background: rgba(10, 5, 20, 0.95); backdrop-filter: blur(10px); z-index: 15;
+            padding: 20px; display: flex; flex-direction: column; overflow-y: auto;
+            transition: left 0.3s ease; border-right: 1px solid rgba(153, 51, 255, 0.3);
+        }
+        .config-panel.open { left: 0; }
+        
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .config-title { color: white; font-family: 'Pacifico', cursive; font-size: 24px; }
+        .close-button { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        
+        .config-section { margin-bottom: 25px; padding: 15px; background: rgba(40, 20, 60, 0.6); border-radius: 15px; }
+        .config-section h3 { color: #d400ff; margin-bottom: 15px; font-family: 'Pacifico', cursive; font-size: 20px; }
+        
+        .config-option { margin-bottom: 12px; }
+        .config-option label { display: block; color: white; margin-bottom: 5px; font-size: 14px; }
+        .config-option input[type="range"] { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; -webkit-appearance: none; }
+        .config-option input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #d400ff; cursor: pointer; }
+
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #9933ff; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .color-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        .color-option { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .color-option.active { border-color: white; transform: scale(1.15); }
+        
+        .developer-info { margin-top: auto; padding: 20px; background: rgba(20, 10, 30, 0.8); border-radius: 15px; text-align: center; border: 1px solid rgba(153, 51, 255, 0.3); }
+        .developer-info h3 { color: #d400ff; margin-bottom: 10px; font-family: 'Pacifico', cursive; font-size: 20px; }
+        .developer-info p { color: rgba(255, 255, 255, 0.8); font-size: 14px; }
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 14; display: none; }
+        .overlay.active { display: block; }
+    </style>
+</head>
+<body>
+    <canvas class="webgl"></canvas>
+    <div class="instructions">Te Amo Jazmín 💜</div>
+    <div class="credits">By Angel</div>
+    
+    <div class="menu-button" id="menuButton">
+        <span></span><span></span><span></span>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="config-panel" id="configPanel">
+        <div class="config-header">
+            <div class="config-title">Configuración</div>
+            <button class="close-button" id="closeButton">✕</button>
+        </div>
+        
+        <div class="config-section">
+            <h3>Corazones Orbitales</h3>
+            <div class="config-option"><label>Tamaño</label><input type="range" id="heartSize" min="0.3" max="1.2" step="0.1" value="0.8"></div>
+            <div class="config-option"><label>Velocidad</label><input type="range" id="heartSpeed" min="0" max="1" step="0.05" value="0.25"></div>
+            <div class="config-option">
+                <label>Color principal</label>
+                <div class="color-options">
+                    <div class="color-option active" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
+                    <div class="color-option" style="background-color: #FFD700;" data-color="#FFD700"></div>
+                    <div class="color-option" style="background-color: #ff0055;" data-color="#ff0055"></div>
+                    <div class="color-option" style="background-color: #01ffff;" data-color="#01ffff"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <h3>Corazón Central</h3>
+            <div class="config-option"><label>Tamaño</label><input type="range" id="centerHeartSize" min="2.0" max="5.0" step="0.2" value="3.2"></div>
+        </div>
+        
+        <div class="config-section">
+            <h3>Fondo Estelar</h3>
+            <div class="config-option"><label>Brillo</label><input type="range" id="starBrightness" min="0.3" max="1.0" step="0.1" value="0.85"></div>
+        </div>
+
+        <div class="config-section">
+            <h3>Opciones</h3>
+            <div class="config-option">
+                <label>Rotación automática</label>
+                <label class="toggle-switch"><input type="checkbox" id="autoRotateToggle" checked><span class="slider"></span></label>
+            </div>
+        </div>
+        
+        <div class="developer-info">
+            <h3>Angel & Jazmín</h3>
+            <p>Dedicado a la niña de mis ojos.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from "https://cdn.skypack.dev/three@0.132.2";
+        import { OrbitControls } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js";
+
+        // Corazones CSS fondo
+        function createCSSHearts() {
+            const heartSymbols = ['💜', '✨', '🟣', '💜', '👑', '🌌'];
+            const container = document.body;
+            for (let i = 0; i < 30; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.top = `${Math.random() * 100}%`;
+                heart.style.fontSize = `${16 + Math.random() * 20}px`;
+                heart.style.animationDelay = `${Math.random() * 15}s`;
+                container.appendChild(heart);
+            }
+        }
+        createCSSHearts();
+
+        const canvas = document.querySelector('canvas.webgl');
+        const scene = new THREE.Scene();
+
+        // FRASES PERSONALIZADAS
+        const romanticPhrases = [
+            "💜 Te Amo 💜", "💜 Jazmín 💜", "✨ Mi Vida ✨", "🟣 Mi Reina 🟣", 
+            "🌌 Eres Todo 🌌", "💫 Por Siempre 💫", "🥰 Mi Amor 🥰", "💜 Beautiful 💜",
+            "👑 Princesa 👑", "🌹 Mi Angel 🌹", "💎 Única 💎", "💏 Juntos 💏"
+        ];
+
+        // PARÁMETROS INICIALES (Color Violeta por defecto)
+        const parameters = {
+            heartCount: 16,
+            particlesPerHeart: 1000,
+            heartSize: 0.8,
+            heartSizeVariation: 0.2,
+            insideColor: '#9933ff', // Violeta brillante
+            outsideColor: '#4b0082', // Indigo oscuro
+            centerHeartSize: 3.2,
+            centerHeartParticles: 3000,
+            nucleusParticles: 800,
+            heartCoreParticles: 100,
+            autoRotateSpeed: 0.25,
+            starOpacity: 0.85,
+            textOpacity: 0.9,
+            autoRotate: true
+        };
+
+        let textSprites = [];
+        let heartStructures = [];
+        let centerHeart = null;
+        let nucleusParticles = null;
+        let starfield = null;
+        let heartCoreSystems = [];
+        let heartTexts = [];
+
+        // Función para crear textos flotantes
+        const createTextSprite = (text) => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 320; canvas.height = 80;
+            context.font = 'Bold 32px Georgia';
+            context.textAlign = 'center'; context.textBaseline = 'middle';
+            const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, parameters.insideColor);
+            gradient.addColorStop(0.5, '#ffffff');
+            gradient.addColorStop(1, parameters.outsideColor);
+            context.fillStyle = gradient;
+            context.shadowColor = '#d400ff'; context.shadowBlur = 15;
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: parameters.textOpacity });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(0.55, 0.14, 1);
+            return sprite;
+        };
+
+        // TEXTO CENTRAL (JAZMÍN)
+        const createCenterHeartText = () => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512; canvas.height = 128;
+            context.font = 'Bold 70px Pacifico'; // Más grande
+            context.textAlign = 'center'; context.textBaseline = 'middle';
+            const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, '#e0b0ff');
+            gradient.addColorStop(0.5, '#ffffff');
+            gradient.addColorStop(1, '#9400d3');
+            context.fillStyle = gradient;
+            context.shadowColor = '#ffffff'; context.shadowBlur = 25;
+            context.fillText("👑 Jazmín 👑", canvas.width / 2, canvas.height / 2);
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(2.5, 0.6, 1);
+            return sprite;
+        };
+
+        // TEXTO DE CORAZONES ORBITALES
+        const createHeartText = () => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256; canvas.height = 64;
+            context.font = 'Bold 28px Pacifico';
+            context.textAlign = 'center'; context.textBaseline = 'middle';
+            const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, '#e0b0ff');
+            gradient.addColorStop(1, '#9400d3');
+            context.fillStyle = gradient;
+            context.shadowColor = '#ffffff'; context.shadowBlur = 10;
+            context.fillText("Te Amo", canvas.width / 2, canvas.height / 2);
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(0.7, 0.17, 1);
+            return sprite;
+        };
+
+        // Geometría del Corazón (Matemáticas)
+        const createInvertedHeartGeometry = (size = 1.0, particleCount = 1500) => {
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const colorInside = new THREE.Color(parameters.insideColor);
+            const colorOutside = new THREE.Color(parameters.outsideColor);
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                const t = Math.random() * Math.PI * 2;
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                const z = (Math.random() - 0.5) * 3;
+                positions[i3] = (x * size * 0.04) + (Math.random() - 0.5) * size * 0.08;
+                positions[i3 + 1] = (y * size * 0.04) + (Math.random() - 0.5) * size * 0.08;
+                positions[i3 + 2] = z * size * 0.08;
+                const radius = Math.sqrt(x*x + y*y);
+                const mixedColor = colorInside.clone().lerp(colorOutside, Math.min(radius / 20, 1));
+                colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            return geometry;
+        };
+
+        // Fondo de Estrellas
+        const createStarfield = () => {
+            const starCount = 6000;
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            const sizes = new Float32Array(starCount);
+            for (let i = 0; i < starCount; i++) {
+                const i3 = i * 3;
+                const radius = 50 + Math.random() * 150;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i3 + 2] = radius * Math.cos(phi);
+                colors[i3] = 0.8; colors[i3 + 1] = 0.6; colors[i3 + 2] = 1; // Tono azulado/violeta
+                sizes[i] = 0.2 + Math.random() * 0.4;
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            const material = new THREE.PointsMaterial({ size: 0.8, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: parameters.starOpacity, blending: THREE.AdditiveBlending, depthWrite: false });
+            return new THREE.Points(geometry, material);
+        };
+
+        // Generador Principal
+        const generateHearts = () => {
+            // Limpiar escena
+            textSprites.forEach(s => scene.remove(s)); textSprites = [];
+            heartTexts.forEach(t => scene.remove(t)); heartTexts = [];
+            heartStructures.forEach(h => { h.geometry.dispose(); h.material.dispose(); scene.remove(h); }); heartStructures = [];
+            if (centerHeart) { centerHeart.geometry.dispose(); scene.remove(centerHeart); }
+            if (nucleusParticles) { nucleusParticles.geometry.dispose(); scene.remove(nucleusParticles); }
+
+            // Corazones Orbitales
+            for (let i = 0; i < parameters.heartCount; i++) {
+                const heartSize = parameters.heartSize + Math.random() * parameters.heartSizeVariation;
+                const heart = new THREE.Points(createInvertedHeartGeometry(heartSize, parameters.particlesPerHeart), new THREE.PointsMaterial({ size: 0.025, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, transparent: true, opacity: 0.98 }));
+                const angle = (i / parameters.heartCount) * Math.PI * 2;
+                heart.position.set(Math.cos(angle) * 3.8, 0, Math.sin(angle) * 3.8);
+                scene.add(heart);
+                heartStructures.push(heart);
+                
+                const heartText = createHeartText();
+                heartText.position.copy(heart.position);
+                scene.add(heartText);
+                heartTexts.push(heartText);
+            }
+
+            // Corazón Central
+            centerHeart = new THREE.Points(createInvertedHeartGeometry(parameters.centerHeartSize, parameters.centerHeartParticles), new THREE.PointsMaterial({ size: 0.032, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, transparent: true, opacity: 0.99 }));
+            scene.add(centerHeart);
+
+            const centerText = createCenterHeartText();
+            centerText.position.set(0, 0.3, 0);
+            scene.add(centerText);
+            textSprites.push(centerText);
+
+            // Frases flotantes
+            for (let i = 0; i < 160; i++) {
+                const phrase = romanticPhrases[i % romanticPhrases.length];
+                const radius = 2.0 + Math.random() * 4.0;
+                const angle = Math.random() * Math.PI * 2;
+                const sprite = createTextSprite(phrase);
+                sprite.position.set(Math.cos(angle) * radius, (Math.random() - 0.5) * 3.5, Math.sin(angle) * radius);
+                scene.add(sprite);
+                textSprites.push(sprite);
+            }
+        };
+
+        starfield = createStarfield();
+        scene.add(starfield);
+        generateHearts();
+
+        // Cámara y Render
+        const sizes = { width: window.innerWidth, height: window.innerHeight };
+        const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 200);
+        camera.position.set(9, 5, 9);
+        scene.add(camera);
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(sizes.width, sizes.height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+
+        // Eventos Ventana
+        window.addEventListener('resize', () => {
+            sizes.width = window.innerWidth;
+            sizes.height = window.innerHeight;
+            camera.aspect = sizes.width / sizes.height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(sizes.width, sizes.height);
+        });
+
+        // Lógica Panel Config
+        const menuBtn = document.getElementById('menuButton');
+        const panel = document.getElementById('configPanel');
+        const closeBtn = document.getElementById('closeButton');
+        const overlay = document.getElementById('overlay');
+
+        const toggleMenu = () => { panel.classList.toggle('open'); overlay.classList.toggle('active'); };
+        menuBtn.addEventListener('click', toggleMenu);
+        closeBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+
+        // Inputs Config
+        document.getElementById('heartSize').addEventListener('input', (e) => { parameters.heartSize = parseFloat(e.target.value); generateHearts(); });
+        document.getElementById('centerHeartSize').addEventListener('input', (e) => { parameters.centerHeartSize = parseFloat(e.target.value); generateHearts(); });
+        document.getElementById('heartSpeed').addEventListener('input', (e) => { controls.autoRotateSpeed = parseFloat(e.target.value); });
+        
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                parameters.insideColor = option.dataset.color;
+                parameters.outsideColor = option.dataset.color;
+                generateHearts();
+            });
+        });
+
+        // Animación
+        const clock = new THREE.Clock();
+        const tick = () => {
+            const elapsedTime = clock.getElapsedTime();
+            controls.update();
+            
+            // Que los textos miren a la cámara
+            [...textSprites, ...heartTexts].forEach(s => s.lookAt(camera.position));
+            heartStructures.forEach(h => h.lookAt(camera.position));
+            if(centerHeart) centerHeart.lookAt(camera.position);
+
+            renderer.render(scene, camera);
+            window.requestAnimationFrame(tick);
+        };
+        tick();
+    </script>
+    
+    <audio id="bg-music" loop autoplay>
+        <source src="https://github.com/Gon-p/G-/raw/refs/heads/main/adore%20-%20_did%20i%20tell%20u%20that%20i%20miss%20u_%20(lyric%20video).m4a" type="audio/mpeg">
+    </audio>
+    <script>
+        document.addEventListener('click', function() {
+            document.getElementById('bg-music').play().catch(e => console.log("Audio waiting"));
+        }, { once: true });
+    </script>
+</body>
+</html>
